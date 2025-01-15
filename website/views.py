@@ -1,6 +1,6 @@
 from flask import Blueprint, flash, render_template, request, url_for, jsonify
 from flask_login import login_required, current_user
-from .models import Note
+from .models import Client
 from . import db
 import json
 
@@ -10,26 +10,26 @@ views = Blueprint('views', __name__)
 @login_required
 def home():
     if request.method == 'POST':
-        note = request.form.get('note')
+        client = request.form.get('client')
 
-        if len(note) < 1:
-            flash('Note is too short', catgory='error')
+        if len(client) < 1:
+            flash('Client is too short', catgory='error')
         else:
-            new_note = Note(data=note, user_id=current_user.id)
-            db.session.add(new_note)
+            new_client = Client(data=client, user_id=current_user.id)
+            db.session.add(new_client)
             db.session.commit()
-            flash('Note added!', category='success')
+            flash('Client added!', category='success')
 
     return render_template("home.html", user=current_user)
 
-@views.route('/delete-note', methods=['POST'])
-def delete_note():
-    note = json.loads(request.data)
-    noteId = note['noteId']
-    note = Note.query.get(noteId)
-    if note:
-        if note.user_id == current_user.id:
-            db.session.delete(note)
+@views.route('/delete-client', methods=['POST'])
+def delete_client():
+    client = json.loads(request.data)
+    clientId = client['clientId']
+    client = Client.query.get(clientId)
+    if client:
+        if client.user_id == current_user.id:
+            db.session.delete(client)
             db.session.commit()
            
     return jsonify({})
