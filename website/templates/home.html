@@ -1,21 +1,141 @@
-{% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
-%}
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
 <h1 align="center">Clients</h1>
-<ul class="list-group list-group-flush" id="clients">
-  {% for client in user.clients %}
-  <li class="list-group-item">
-    {{ client.data }}
-    <button type="button" class="close" onClick="deleteClient({{ client.id }})">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </li>
-  {% endfor %}
-</ul>
-<form method="POST">
-  <textarea name="client" id="client" class="form-control"></textarea>
-  <br />
-  <div align="center">
+<div class="table-responsive">
+  <table class="table table-bordered table-striped">
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">PRE FACTURA</th>
+        <th scope="col">DOCUMENTO</th>
+        <th scope="col">Fecha Emisión</th>
+        <th scope="col">Pagado</th>
+        <th scope="col">RUC</th>
+        <th scope="col">Compania</th>
+        <th scope="col">Moneda</th>
+        <th scope="col">Cantidad</th>
+        <th scope="col">Precio Unitario</th>
+        <th scope="col">Parcial</th>
+        <th scope="col">IGV</th>
+        <th scope="col">Total</th>
+        <th scope="col">DESCRIPCIÓN</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for client in user.clients %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="pre_factura">{{ client.pre_factura }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="documento">{{ client.documento }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="fecha_emision">{{ client.fecha_emision.strftime('%Y-%m-%d') if client.fecha_emision else '' }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="pagado">{{ 'Sí' if client.pagado else 'No' }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="ruc">{{ client.ruc }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="compania">{{ client.compania }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="moneda">{{ client.moneda }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="cantidad">{{ client.cantidad }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="precio_unitario">{{ client.precio_unitario }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="parcial">{{ client.parcial }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="igv">{{ client.igv }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="total">{{ client.total }}</td>
+        <td class="editable" data-id="{{ client.id }}" data-field="descripcion">{{ client.descripcion }}</td>
+        <td>
+          <button type="button" class="btn btn-danger btn-sm" onClick="deleteClient({{ client.id }})">
+            Delete
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  document.querySelectorAll('.editable').forEach(function(cell) {
+    cell.addEventListener('click', function() {
+      var currentValue = cell.innerText
+      var input = document.createElement('input')
+      input.type = 'text'
+      input.value = currentValue
+      input.addEventListener('blur', function() {
+        var updatedValue = input.value
+        var clientId = cell.getAttribute('data-id')
+        var fieldName = cell.getAttribute('data-field')
+        updateClient(clientId, fieldName, updatedValue)
+        cell.innerText = updatedValue
+      })
+      cell.innerHTML = ''
+      cell.appendChild(input)
+      input.focus()
+    })
+  })
+
+  function updateClient(clientId, fieldName, updatedValue) {
+    fetch(`/update-client`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ clientId: clientId, field: fieldName, value: updatedValue }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Client updated successfully!');
+      } else {
+        alert('Failed to update client.');
+      }
+    });
+  }
+</script>
+
+<!-- Add New Client Form -->
+<form method="POST" class="mt-4">
+  <div class="form-group">
+    <label for="pre_factura">PRE FACTURA</label>
+    <input type="text" name="pre_factura" id="pre_factura" class="form-control" required />
+
+    <label for="documento" class="mt-2">DOCUMENTO</label>
+    <input type="text" name="documento" id="documento" class="form-control" required />
+
+    <label for="fecha_emision" class="mt-2">Fecha Emisión</label>
+    <input type="date" name="fecha_emision" id="fecha_emision" class="form-control" />
+
+    <label for="pagado" class="mt-2">Pagado</label>
+    <input type="date" name="pagado" id="pagado" class="form-control" />
+
+    <label for="ruc" class="mt-2">RUC</label>
+    <input type="text" name="ruc" id="ruc" class="form-control" />
+
+    <label for="compania" class="mt-2">Compania</label>
+    <input type="text" name="compania" id="compania" class="form-control" />
+
+    <label for="moneda" class="mt-2">Moneda</label>
+    <input type="text" name="moneda" id="moneda" class="form-control" />
+
+    <label for="cantidad" class="mt-2">Cantidad</label>
+    <input type="number" step="any" name="cantidad" id="cantidad" class="form-control" />
+
+    <label for="precio_unitario" class="mt-2">Precio Unitario</label>
+    <input type="number" step="any" name="precio_unitario" id="precio_unitario" class="form-control" />
+
+    <label for="parcial" class="mt-2">Parcial</label>
+    <input type="number" step="any" name="parcial" id="parcial" class="form-control" />
+
+    <label for="igv" class="mt-2">IGV</label>
+    <input type="number" step="any" name="igv" id="igv" class="form-control" />
+
+    <label for="total" class="mt-2">Total</label>
+    <input type="number" step="any" name="total" id="total" class="form-control" />
+
+    <label for="descripcion" class="mt-2">DESCRIPCIÓN</label>
+    <textarea name="descripcion" id="descripcion" class="form-control"></textarea>
+  </div>
+
+  <div align="center" class="mt-4">
     <button type="submit" class="btn btn-primary">Add Client</button>
   </div>
 </form>
+
 {% endblock %}
